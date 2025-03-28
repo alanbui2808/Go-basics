@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"os"
 )
 
 /*
@@ -14,6 +14,10 @@ io.ReadCloser interface { Reader interface, Closer interface}
 io.Reader interface { Read([]byte) (int, error) }
 io.Closer interface { Close() (error) }
 */
+
+// custom Writer
+type logWriter struct{}
+
 func main() {
 	resp, err := http.Get("http://google.com")
 	if err != nil {
@@ -39,6 +43,18 @@ func main() {
 
 		"If interface A embeds interface B, then any type that implements A also implements B — but not the other way around."
 	*/
-	io.Copy(os.Stdout, resp.Body)
 
+	// io.Copy(os.Stdout, resp.Body)
+
+	lw := logWriter{}
+	io.Copy(lw, resp.Body)
+
+}
+
+// Now logWriter implements Writer interface
+func (logWriter) Write(bs []byte) (int, error) {
+	fmt.Println(string(bs))
+	fmt.Println("Just wrote this many bytes:", len(bs))
+
+	return len(bs), nil
 }
