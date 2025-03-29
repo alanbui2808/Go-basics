@@ -27,8 +27,17 @@ func main() {
 		go checkLink(link, c)
 	}
 
-	// receive all the output from c chan string
-	fmt.Println(<-c)
+	/*
+		receive the output from c chan string
+		however this actually terminates when ONE response is spit out of channel and main will terminate
+		leaving the rest of routines in the void.
+	*/
+	// fmt.Println(<-c)
+
+	for i := 0; i < len(links); i++ {
+		// Note: Println() is still a blocking call
+		fmt.Println(<-c)
+	}
 }
 
 func checkLink(link string, c chan string) {
