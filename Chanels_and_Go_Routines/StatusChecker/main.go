@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 )
 
 func main() {
 	links := []string{
 		"http://google.com",
 		"http://facebook.com",
-		"http://golang.org",
-		"http://amazon.com",
+		// "http://golang.org",
+		// "http://amazon.com",
 	}
 
 	/*
@@ -27,30 +28,26 @@ func main() {
 		go checkLink(link, c)
 	}
 
-	/*
-		receive the output from c chan string
-		however this actually terminates when ONE response is spit out of channel and main will terminate
-		leaving the rest of routines in the void.
-	*/
-	// fmt.Println(<-c)
-
-	for i := 0; i < len(links); i++ {
-		// Note: Println() is still a blocking call
-		fmt.Println(<-c)
+	for l := range c {
+		// launch new routine that waits 5s before checkLink() again
+		go func(link string) {
+			time.Sleep(5 * time.Second)
+			// receives link from channel and continue to spawn another routine
+			checkLink(link, c)
+		}(l)
 	}
 }
 
 func checkLink(link string, c chan string) {
 	// make a request to link and spit out the status
 	_, err := http.Get(link)
-	var msg string
 
 	if err != nil {
-		fmt.Println("Error:", err, "with:", link)
-		msg = "Might be down I think"
-	} else {
-		msg = link + " is up!"
+		fmt.Println(link, "might be down!")
+		c <- link
+		return
 	}
-	// send the msg into the channel
-	c <- msg
+
+	fmt.Println(link, "is up!")
+	c <- link
 }
